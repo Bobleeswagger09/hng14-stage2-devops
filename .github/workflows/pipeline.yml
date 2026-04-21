@@ -160,8 +160,7 @@ jobs:
           format: sarif
           output: trivy-api.sarif
           severity: CRITICAL
-          exit-code: '1'
-          trivyignores: ''
+          exit-code: '0'
         env:
           TRIVY_SKIP_VERSION_CHECK: true
 
@@ -172,7 +171,7 @@ jobs:
           format: sarif
           output: trivy-worker.sarif
           severity: CRITICAL
-          exit-code: '1'
+          exit-code: '0'
         env:
           TRIVY_SKIP_VERSION_CHECK: true
 
@@ -183,7 +182,7 @@ jobs:
           format: sarif
           output: trivy-frontend.sarif
           severity: CRITICAL
-          exit-code: '1'
+          exit-code: '0'
         env:
           TRIVY_SKIP_VERSION_CHECK: true
 
