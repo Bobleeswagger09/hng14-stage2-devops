@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 import redis
 import uuid
 import os
