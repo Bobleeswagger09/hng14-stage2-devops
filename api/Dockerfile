@@ -9,7 +9,8 @@ RUN pip install --upgrade pip && \
 FROM python:3.11-slim
 WORKDIR /app
 
-RUN groupadd -r appgroup && useradd -r -g appgroup -u 1000 appuser
+RUN groupadd --system appgroup && \
+    useradd --system --gid appgroup --uid 1000 appuser
 
 COPY --from=builder /root/.local /home/appuser/.local
 COPY main.py .
