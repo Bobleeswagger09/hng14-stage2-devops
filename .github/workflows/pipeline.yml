@@ -144,47 +144,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Build images for scanning
         run: |
           docker build -t scan/api:latest ./api
           docker build -t scan/worker:latest ./worker
           docker build -t scan/frontend:latest ./frontend
 
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.69.3
+
       - name: Scan API image with Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: scan/api:latest
-          format: sarif
-          output: trivy-api.sarif
-          severity: CRITICAL
-          exit-code: '0'
-        env:
-          TRIVY_SKIP_VERSION_CHECK: true
+        run: |
+          trivy image --format sarif --output trivy-api.sarif \
+            --severity CRITICAL \
+            --skip-version-check \
+            --exit-code 0 \
+            scan/api:latest
 
       - name: Scan worker image with Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: scan/worker:latest
-          format: sarif
-          output: trivy-worker.sarif
-          severity: CRITICAL
-          exit-code: '0'
-        env:
-          TRIVY_SKIP_VERSION_CHECK: true
+        run: |
+          trivy image --format sarif --output trivy-worker.sarif \
+            --severity CRITICAL \
+            --skip-version-check \
+            --exit-code 0 \
+            scan/worker:latest
 
       - name: Scan frontend image with Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: scan/frontend:latest
-          format: sarif
-          output: trivy-frontend.sarif
-          severity: CRITICAL
-          exit-code: '0'
-        env:
-          TRIVY_SKIP_VERSION_CHECK: true
+        run: |
+          trivy image --format sarif --output trivy-frontend.sarif \
+            --severity CRITICAL \
+            --skip-version-check \
+            --exit-code 0 \
+            scan/frontend:latest
 
       - name: Upload Trivy SARIF results
         uses: actions/upload-artifact@v4
