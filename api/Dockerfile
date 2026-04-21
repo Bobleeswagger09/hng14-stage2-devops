@@ -1,15 +1,14 @@
 # Build stage
-FROM python:3.13-slim AS builder
+FROM python:3.13-alpine AS builder
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Final stage
-FROM python:3.13-slim
+FROM python:3.13-alpine
 WORKDIR /app
 
-RUN groupadd --system appgroup && \
-    useradd --system --gid appgroup --uid 1000 appuser
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=builder /root/.local /home/appuser/.local
 COPY main.py .

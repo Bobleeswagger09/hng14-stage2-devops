@@ -150,7 +150,7 @@ jobs:
           docker build -t scan/worker:latest ./worker
           docker build -t scan/frontend:latest ./frontend
 
-      - name: Install Trivy via apt
+      - name: Install Trivy
         run: |
           sudo apt-get install -y wget apt-transport-https gnupg
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
@@ -158,19 +158,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y trivy
 
-      - name: Scan images with Trivy and generate SARIF
+      - name: Generate SARIF reports
         run: |
-          trivy image --format sarif --output trivy-api.sarif --skip-version-check scan/api:latest 2>/dev/null || true
-          trivy image --format sarif --output trivy-worker.sarif --skip-version-check scan/worker:latest 2>/dev/null || true
-          trivy image --format sarif --output trivy-frontend.sarif --skip-version-check scan/frontend:latest 2>/dev/null || true
-          echo "Trivy scans completed"
+          trivy image --format sarif --output trivy-api.sarif --skip-version-check --scanners vuln scan/api:latest || true
+          trivy image --format sarif --output trivy-worker.sarif --skip-version-check --scanners vuln scan/worker:latest || true
+          trivy image --format sarif --output trivy-frontend.sarif --skip-version-check --scanners vuln scan/frontend:latest || true
 
-      - name: Check for CRITICAL vulnerabilities
+      - name: Fail on CRITICAL vulnerabilities
         run: |
-          trivy image --severity CRITICAL --skip-version-check --exit-code 1 scan/api:latest 2>/dev/null || echo "CRITICAL found in api"
-          trivy image --severity CRITICAL --skip-version-check --exit-code 1 scan/worker:latest 2>/dev/null || echo "CRITICAL found in worker"
-          trivy image --severity CRITICAL --skip-version-check --exit-code 1 scan/frontend:latest 2>/dev/null || echo "CRITICAL found in frontend"
-          echo "Security scan complete"
+          trivy image --severity CRITICAL --exit-code 1 --skip-version-check --scanners vuln scan/api:latest
+          trivy image --severity CRITICAL --exit-code 1 --skip-version-check --scanners vuln scan/worker:latest
+          trivy image --severity CRITICAL --exit-code 1 --skip-version-check --scanners vuln scan/frontend:latest
 
       - name: Upload Trivy SARIF results
         uses: actions/upload-artifact@v4
