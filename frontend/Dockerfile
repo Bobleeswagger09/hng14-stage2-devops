@@ -8,7 +8,6 @@ RUN npm install --only=production
 FROM node:18-alpine
 WORKDIR /app
 
-# Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=builder /app/node_modules ./node_modules
