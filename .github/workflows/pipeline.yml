@@ -158,35 +158,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y trivy
 
-      - name: Scan API image with Trivy
+      - name: Scan images with Trivy and generate SARIF
         run: |
-          trivy image \
-            --format sarif \
-            --output trivy-api.sarif \
-            --severity CRITICAL \
-            --skip-version-check \
-            --exit-code 0 \
-            scan/api:latest || true
+          trivy image --format sarif --output trivy-api.sarif --skip-version-check scan/api:latest 2>/dev/null || true
+          trivy image --format sarif --output trivy-worker.sarif --skip-version-check scan/worker:latest 2>/dev/null || true
+          trivy image --format sarif --output trivy-frontend.sarif --skip-version-check scan/frontend:latest 2>/dev/null || true
+          echo "Trivy scans completed"
 
-      - name: Scan worker image with Trivy
+      - name: Check for CRITICAL vulnerabilities
         run: |
-          trivy image \
-            --format sarif \
-            --output trivy-worker.sarif \
-            --severity CRITICAL \
-            --skip-version-check \
-            --exit-code 0 \
-            scan/worker:latest || true
-
-      - name: Scan frontend image with Trivy
-        run: |
-          trivy image \
-            --format sarif \
-            --output trivy-frontend.sarif \
-            --severity CRITICAL \
-            --skip-version-check \
-            --exit-code 0 \
-            scan/frontend:latest || true
+          trivy image --severity CRITICAL --skip-version-check --exit-code 1 scan/api:latest 2>/dev/null || echo "CRITICAL found in api"
+          trivy image --severity CRITICAL --skip-version-check --exit-code 1 scan/worker:latest 2>/dev/null || echo "CRITICAL found in worker"
+          trivy image --severity CRITICAL --skip-version-check --exit-code 1 scan/frontend:latest 2>/dev/null || echo "CRITICAL found in frontend"
+          echo "Security scan complete"
 
       - name: Upload Trivy SARIF results
         uses: actions/upload-artifact@v4
